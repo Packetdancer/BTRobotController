@@ -34,9 +34,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mAdapter = BluetoothAdapter.getDefaultAdapter();
-        btDevice = mAdapter.getRemoteDevice("00:11:11:31:71:67");
-
-        connect();
+        btDevice = mAdapter.getRemoteDevice("00:06:66:08:5F:FB");
 
         forwardButton = (Button) findViewById(R.id.forward);
         forwardButton.setOnTouchListener(new View.OnTouchListener() {
@@ -97,6 +95,14 @@ public class MainActivity extends Activity {
                 connect();
             }
         } );
+
+        forwardButton.setEnabled(false);
+        backButton.setEnabled(false);
+        leftButton.setEnabled(false);
+        rightButton.setEnabled(false);
+
+        connect();
+
     }
 
 
@@ -116,6 +122,11 @@ public class MainActivity extends Activity {
             btSocket = btDevice.createRfcommSocketToServiceRecord(UUID.fromString("00001101-0000-1000-8000-00805f9b34fb"));
             btSocket.connect();
             btOutStream = btSocket.getOutputStream();
+
+            forwardButton.setEnabled(true);
+            backButton.setEnabled(true);
+            leftButton.setEnabled(true);
+            rightButton.setEnabled(true);
 
         } catch (IOException e) {
             e.printStackTrace();
