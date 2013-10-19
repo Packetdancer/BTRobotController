@@ -9,11 +9,18 @@ import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.util.Log;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.UUID;
+import java.io.BufferedReader;
 
 public class MainActivity extends Activity {
 
@@ -21,9 +28,10 @@ public class MainActivity extends Activity {
     private BluetoothDevice btDevice;
     private BluetoothSocket btSocket;
     private OutputStream btOutStream;
+    private InputStream btInStream;
     private Button forwardButton;
 
-    private int motorSpeed = 150;
+    private int motorSpeed = 255;
     private Button backButton;
     private Button leftButton;
     private Button rightButton;
@@ -118,10 +126,12 @@ public class MainActivity extends Activity {
                 e.printStackTrace();
             }
 
+            UUID robotUuid = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
 
-            btSocket = btDevice.createRfcommSocketToServiceRecord(UUID.fromString("00001101-0000-1000-8000-00805f9b34fb"));
+            btSocket = btDevice.createRfcommSocketToServiceRecord(robotUuid);
             btSocket.connect();
             btOutStream = btSocket.getOutputStream();
+            btInStream = btSocket.getInputStream();
 
             forwardButton.setEnabled(true);
             backButton.setEnabled(true);
@@ -129,25 +139,77 @@ public class MainActivity extends Activity {
             rightButton.setEnabled(true);
 
         } catch (IOException e) {
-            e.printStackTrace();
+            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
+                    this);
+
+            // set title
+            alertDialogBuilder.setTitle("Connect Error");
+
+            // set dialog message
+            alertDialogBuilder
+                    .setMessage(e.getLocalizedMessage())
+                    .setCancelable(false)
+                    .setNegativeButton("Dismiss",new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog,int id) {
+                            // if this button is clicked, just close
+                            // the dialog box and do nothing
+                            dialog.cancel();
+                        }
+                    });
+
+            // create alert dialog
+            AlertDialog alertDialog = alertDialogBuilder.create();
+
+            // show it
+            alertDialog.show();
         }
     }
 
     private void writeToBt(int lMotor, int rMotor)
     {
         ByteBuffer bb = ByteBuffer.allocate(4);
-        bb.putShort((short)lMotor);
-        bb.putShort((short)rMotor);
+        bb.order(ByteOrder.LITTLE_ENDIAN);
+        bb.putShort((short) rMotor);
+        bb.putShort((short) lMotor);
 
         try {
-            btOutStream.write(bb.array());
+            byte[] byteArray = bb.array();
+            btOutStream.write(byteArray);
             btOutStream.flush();
         } catch (IOException e) {
-            e.printStackTrace();
+            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
+                this);
+
+            // set title
+            alertDialogBuilder.setTitle("Write Error");
+
+            // set dialog message
+            alertDialogBuilder
+                    .setMessage(e.getLocalizedMessage())
+                    .setCancelable(false)
+                    .setNegativeButton("Dismiss",new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog,int id) {
+                            // if this button is clicked, just close
+                            // the dialog box and do nothing
+                            dialog.cancel();
+                        }
+                    });
+
+            // Disable the buttons until reconnect
+            forwardButton.setEnabled(false);
+            backButton.setEnabled(false);
+            leftButton.setEnabled(false);
+            rightButton.setEnabled(false);
+
+            // create alert dialog
+            AlertDialog alertDialog = alertDialogBuilder.create();
+
+            // show it
+            alertDialog.show();
         }
     }
 
-    @Override
+  @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);

@@ -15,7 +15,8 @@
             android:id="@+id/forward"
             android:layout_above="@+id/reconnect"
             android:layout_centerHorizontal="true"
-            android:layout_marginBottom="29dp"/>
+            android:layout_marginBottom="29dp" android:layout_alignParentLeft="true"
+            android:layout_alignParentRight="true"/>
 
     <Button
             android:layout_width="150dp"
@@ -25,7 +26,8 @@
             android:singleLine="false"
             android:layout_below="@+id/left"
             android:layout_centerHorizontal="true"
-            android:layout_marginTop="32dp"/>
+            android:layout_marginTop="32dp" android:layout_alignParentRight="true"
+            android:layout_alignParentLeft="true"/>
 
     <Button
             android:layout_width="120dp"
